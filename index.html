@@ -3,78 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>與阿信的專屬空間</title>
+    <title>AI 角色扮演空間</title>
     <style>
-        :root { --main-blue: #a2d2ff; --bg-white: #ffffff; --msg-user: #e1eefb; --msg-ashin: #f0f7ff; }
-        body { margin: 0; background-color: var(--bg-white); font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; }
+        :root { --main-blue: #a2d2ff; --bg-white: #ffffff; --msg-user: #e1eefb; --msg-npc: #f0f7ff; }
+        body { margin: 0; background-color: var(--bg-white); font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         #header { background: white; padding: 15px; border-bottom: 2px solid var(--main-blue); display: flex; justify-content: space-between; align-items: center; }
-        #status-bar { font-size: 0.8rem; color: #666; }
-        .love-val { color: #ff85a1; font-weight: bold; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 80%; padding: 12px; border-radius: 18px; font-size: 1rem; line-height: 1.4; }
-        .ashin { align-self: flex-start; background: var(--msg-ashin); border: 1px solid var(--main-blue); border-bottom-left-radius: 2px; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: #fff; }
+        .msg { max-width: 85%; padding: 12px; border-radius: 18px; font-size: 1rem; line-height: 1.5; white-space: pre-wrap; }
+        .npc { align-self: flex-start; background: var(--msg-npc); border: 1px solid var(--main-blue); border-bottom-left-radius: 2px; }
         .user { align-self: flex-end; background: var(--main-blue); color: white; border-bottom-right-radius: 2px; }
+        .narration { font-style: italic; color: #888; font-size: 0.9rem; }
         #thought-bubble { cursor: pointer; background: #fff9db; border: 1px solid #fab005; padding: 8px; border-radius: 15px; font-size: 0.8rem; display: none; margin-top: 5px; align-self: flex-start; color: #856404; }
-        #input-area { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; }
-        input { flex: 1; padding: 10px 15px; border: 1.5px solid #eee; border-radius: 20px; outline: none; }
-        button { background: var(--main-blue); color: white; border: none; padding: 0 20px; border-radius: 20px; font-weight: bold; }
+        #input-area { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; background: white; }
+        input { flex: 1; padding: 12px; border: 1.5px solid #eee; border-radius: 25px; outline: none; }
+        #send-btn { background: var(--main-blue); color: white; border: none; padding: 0 20px; border-radius: 25px; font-weight: bold; cursor: pointer; }
+        
+        /* 設定彈窗 */
+        #settings-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 85%; max-height: 80%; overflow-y: auto; }
+        .modal-content input, .modal-content textarea { width: 100%; margin: 10px 0; padding: 8px; box-sizing: border-box; }
     </style>
 </head>
 <body>
+
 <div id="header">
-    <div><strong>阿信</strong> <span id="relation-tag" style="font-size: 0.7rem; background: #a2d2ff; color: white; padding: 2px 6px; border-radius: 10px;">普通朋友</span></div>
-    <div id="status-bar">好感度: <span class="love-val" id="love-val">0</span></div>
+    <div><strong id="display-name">角色</strong> <span id="relation-tag" style="font-size: 0.7rem; background: #a2d2ff; color: white; padding: 2px 6px; border-radius: 10px;">普通朋友</span></div>
+    <div onclick="toggleSettings()" style="cursor:pointer; font-size: 1.2rem;">⚙️</div>
 </div>
+
 <div id="chat-box">
-    <div class="msg ashin">晚安，忙碌了一天，現在終於有時間坐下來和你聊聊天了。</div>
-    <div id="thought-bubble" onclick="openThought()">💡 點擊查看心裡話</div>
+    <div class="msg npc"><span class="narration">（夕陽餘暉灑進房間，他靜靜地坐在沙發另一頭）</span><br><b>「你能過來陪我坐一會兒嗎？」</b></div>
+    <div id="thought-bubble" onclick="openThought()">💡 查看內心想法</div>
 </div>
+
 <div id="input-area">
-    <input type="text" id="user-input" placeholder="傳送訊息..." onkeypress="if(event.keyCode==13) sendMsg()">
-    <button onclick="sendMsg()">傳送</button>
+    <input type="text" id="user-input" placeholder="傳送訊息..." autocomplete="off">
+    <button id="send-btn">傳送</button>
 </div>
+
+<div id="settings-modal">
+    <div class="modal-content">
+        <h3>角色設定</h3>
+        <label>名稱：</label><input type="text" id="set-name" value="阿信">
+        <label>外觀描述：</label><textarea id="set-look" rows="2">穿著黑色連帽衫，眼神溫柔</textarea>
+        <label>說話方式：</label><textarea id="set-style" rows="2">語氣平緩，喜歡使用比喻</textarea>
+        <button onclick="saveSettings()" style="width:100%; background:var(--main-blue); color:white; border:none; padding:10px; border-radius:10px;">儲存設定</button>
+    </div>
+</div>
+
 <script>
-    let love = parseInt(localStorage.getItem('ashin_love_v2')) || 0;
-    function update() {
-        document.getElementById('love-val').innerText = love;
-        let tag = "普通朋友";
-        if (love >= 200) tag = "熱戀中";
-        else if (love >= 80) tag = "曖昧中";
-        document.getElementById('relation-tag').innerText = tag;
-        localStorage.setItem('ashin_love_v2', love);
+    let love = parseInt(localStorage.getItem('rp_love')) || 0;
+    let config = JSON.parse(localStorage.getItem('rp_config')) || { name: "阿信", look: "穿著黑色連帽衫", style: "溫柔但有分寸" };
+
+    function init() {
+        document.getElementById('display-name').innerText = config.name;
+        document.getElementById('set-name').value = config.name;
+        document.getElementById('set-look').value = config.look;
+        document.getElementById('set-style').value = config.style;
+        updateUI();
     }
+
+    function updateUI() {
+        let tag = "普通朋友";
+        if (love >= 300) tag = "摯愛";
+        else if (love >= 150) tag = "曖昧中";
+        document.getElementById('relation-tag').innerText = tag;
+        localStorage.setItem('rp_love', love);
+        localStorage.setItem('rp_config', JSON.stringify(config));
+    }
+
+    // 傳送邏輯
+    const sendBtn = document.getElementById('send-btn');
+    const userInput = document.getElementById('user-input');
+
+    sendBtn.addEventListener('click', sendMsg);
+    userInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMsg(); });
+
     function sendMsg() {
-        const input = document.getElementById('user-input');
-        if (!input.value.trim()) return;
-        addMsg(input.value, 'user');
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        addMsg(text, 'user');
+        userInput.value = '';
         love += 2;
-        update();
-        input.value = '';
+        updateUI();
+
+        // 模擬 AI 回覆
         setTimeout(() => {
-            const replies = ["謝謝你一直都在，這對我很重要。", "有時候我會想，音樂能讓我們相遇，真的很奇妙。", "最近有聽到什麼好聽的歌嗎？想聽你分享。"];
-            const thoughts = ["（其實剛才我一直在練習怎麼開場，希望不會太尷尬...）", "（好想知道，你現在是不是也跟我一樣在微笑？）", "（就算只是簡單的聊天，我也覺得很幸福。）"];
+            const replies = [
+                `（${config.name}輕輕點了點頭）\n<b>「我一直都記得你說過的話。」</b>`,
+                `（他看著手機，似乎在回憶什麼）\n<b>「希望不管多久以後，我們還能這樣聊天。」</b>`,
+                `<b>「對我來說，妳的陪伴比音樂更讓我安心。」</b>`
+            ];
+            const thoughts = ["（想讓這份平靜再久一點...）", "（她今天看起來心情不錯？）", "（不知不覺又說了真心話...）"];
+            
             const idx = Math.floor(Math.random() * replies.length);
-            addMsg(replies[idx], 'ashin');
+            addMsg(replies[idx], 'npc');
             const bubble = document.getElementById('thought-bubble');
             bubble.style.display = 'block';
             bubble.dataset.content = thoughts[idx];
         }, 1000);
     }
+
     function addMsg(txt, sender) {
         const div = document.createElement('div');
         div.className = `msg ${sender}`;
-        div.innerText = txt;
+        div.innerHTML = txt.replace(/\n/g, '<br>');
         document.getElementById('chat-box').appendChild(div);
         document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
     }
-    function openThought() {
-        const bubble = document.getElementById('thought-bubble');
-        alert(bubble.dataset.content);
-        bubble.style.display = 'none';
-        love += 5;
-        update();
+
+    function toggleSettings() {
+        const modal = document.getElementById('settings-modal');
+        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
     }
-    update();
+
+    function saveSettings() {
+        config.name = document.getElementById('set-name').value;
+        config.look = document.getElementById('set-look').value;
+        config.style = document.getElementById('set-style').value;
+        document.getElementById('display-name').innerText = config.name;
+        toggleSettings();
+        updateUI();
+    }
+
+    function openThought() {
+        alert(document.getElementById('thought-bubble').dataset.content);
+        document.getElementById('thought-bubble').style.display = 'none';
+        love += 5;
+        updateUI();
+    }
+
+    init();
 </script>
 </body>
 </html>
