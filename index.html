@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>與阿信的專屬空間</title>
+    <style>
+        :root { --main-blue: #a2d2ff; --bg-white: #ffffff; --msg-user: #e1eefb; --msg-ashin: #f0f7ff; }
+        body { margin: 0; background-color: var(--bg-white); font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; }
+        #header { background: white; padding: 15px; border-bottom: 2px solid var(--main-blue); display: flex; justify-content: space-between; align-items: center; }
+        #status-bar { font-size: 0.8rem; color: #666; }
+        .love-val { color: #ff85a1; font-weight: bold; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 80%; padding: 12px; border-radius: 18px; font-size: 1rem; line-height: 1.4; }
+        .ashin { align-self: flex-start; background: var(--msg-ashin); border: 1px solid var(--main-blue); border-bottom-left-radius: 2px; }
+        .user { align-self: flex-end; background: var(--main-blue); color: white; border-bottom-right-radius: 2px; }
+        #thought-bubble { cursor: pointer; background: #fff9db; border: 1px solid #fab005; padding: 8px; border-radius: 15px; font-size: 0.8rem; display: none; margin-top: 5px; align-self: flex-start; color: #856404; }
+        #input-area { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; }
+        input { flex: 1; padding: 10px 15px; border: 1.5px solid #eee; border-radius: 20px; outline: none; }
+        button { background: var(--main-blue); color: white; border: none; padding: 0 20px; border-radius: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div id="header">
+    <div><strong>阿信</strong> <span id="relation-tag" style="font-size: 0.7rem; background: #a2d2ff; color: white; padding: 2px 6px; border-radius: 10px;">普通朋友</span></div>
+    <div id="status-bar">好感度: <span class="love-val" id="love-val">0</span></div>
+</div>
+<div id="chat-box">
+    <div class="msg ashin">晚安，忙碌了一天，現在終於有時間坐下來和你聊聊天了。</div>
+    <div id="thought-bubble" onclick="openThought()">💡 點擊查看心裡話</div>
+</div>
+<div id="input-area">
+    <input type="text" id="user-input" placeholder="傳送訊息..." onkeypress="if(event.keyCode==13) sendMsg()">
+    <button onclick="sendMsg()">傳送</button>
+</div>
+<script>
+    let love = parseInt(localStorage.getItem('ashin_love_v2')) || 0;
+    function update() {
+        document.getElementById('love-val').innerText = love;
+        let tag = "普通朋友";
+        if (love >= 200) tag = "熱戀中";
+        else if (love >= 80) tag = "曖昧中";
+        document.getElementById('relation-tag').innerText = tag;
+        localStorage.setItem('ashin_love_v2', love);
+    }
+    function sendMsg() {
+        const input = document.getElementById('user-input');
+        if (!input.value.trim()) return;
+        addMsg(input.value, 'user');
+        love += 2;
+        update();
+        input.value = '';
+        setTimeout(() => {
+            const replies = ["謝謝你一直都在，這對我很重要。", "有時候我會想，音樂能讓我們相遇，真的很奇妙。", "最近有聽到什麼好聽的歌嗎？想聽你分享。"];
+            const thoughts = ["（其實剛才我一直在練習怎麼開場，希望不會太尷尬...）", "（好想知道，你現在是不是也跟我一樣在微笑？）", "（就算只是簡單的聊天，我也覺得很幸福。）"];
+            const idx = Math.floor(Math.random() * replies.length);
+            addMsg(replies[idx], 'ashin');
+            const bubble = document.getElementById('thought-bubble');
+            bubble.style.display = 'block';
+            bubble.dataset.content = thoughts[idx];
+        }, 1000);
+    }
+    function addMsg(txt, sender) {
+        const div = document.createElement('div');
+        div.className = `msg ${sender}`;
+        div.innerText = txt;
+        document.getElementById('chat-box').appendChild(div);
+        document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
+    }
+    function openThought() {
+        const bubble = document.getElementById('thought-bubble');
+        alert(bubble.dataset.content);
+        bubble.style.display = 'none';
+        love += 5;
+        update();
+    }
+    update();
+</script>
+</body>
+</html>
