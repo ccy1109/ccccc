@@ -3,76 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 專屬聊天空間</title>
+    <title>與心儀角色的秘密時光</title>
     <style>
-        :root { --main-blue: #a2d2ff; --soft-bg: #f8faff; }
-        body { margin: 0; background-color: var(--soft-bg); font-family: -apple-system, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        /* 頂部 Header */
-        #header { background: white; padding: 12px 18px; border-bottom: 2px solid var(--main-blue); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        #settings-btn { background: var(--main-blue); color: white; padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
-        
-        /* 聊天區域 */
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; padding-bottom: 120px; }
-        .msg { max-width: 85%; padding: 12px 16px; border-radius: 20px; font-size: 1rem; line-height: 1.6; word-wrap: break-word; }
-        .npc { align-self: flex-start; background: #fff; border: 1.5px solid var(--main-blue); color: #333; border-bottom-left-radius: 4px; }
-        .user { align-self: flex-end; background: var(--main-blue); color: white; border-bottom-right-radius: 4px; }
+        :root { --pink-gradient: linear-gradient(90deg, #ff758c 0%, #ff7eb3 100%); --soft-pink: #fff0f3; }
+        body { margin: 0; background-color: #fff; font-family: -apple-system, "Microsoft JhengHei", sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        /* 頂部粉色好感度條 (模仿卿卿我我) */
+        #header-status { background: var(--pink-gradient); padding: 15px; color: white; box-shadow: 0 4px 10px rgba(255, 117, 140, 0.3); z-index: 100; }
+        .status-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
+        .progress-bg { background: rgba(255,255,255,0.3); height: 12px; border-radius: 10px; overflow: hidden; position: relative; }
+        #progress-bar { background: white; width: 12%; height: 100%; transition: width 0.5s ease; box-shadow: 0 0 8px white; }
+
+        /* 角色資訊區 */
+        #npc-info { text-align: center; padding: 15px 10px; border-bottom: 1px solid #eee; background: #fffafb; }
+        #npc-info h2 { margin: 0; font-size: 1.4rem; color: #444; }
+        #npc-tags { font-size: 0.8rem; color: #ff758c; margin-top: 5px; font-style: italic; }
+
+        /* 聊天顯示區 */
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; background: white; padding-bottom: 150px; }
+        .msg { max-width: 85%; padding: 15px; border-radius: 20px; font-size: 1rem; line-height: 1.7; word-wrap: break-word; position: relative; }
+        .npc { align-self: flex-start; background: #f8f9fa; border: 1px solid #eee; color: #333; border-bottom-left-radius: 2px; }
+        .user { align-self: flex-end; background: var(--pink-gradient); color: white; border-bottom-right-radius: 2px; }
         
         /* 格式化樣式 */
-        b { font-weight: 800; color: #1a1a1a; }
-        i { font-style: italic; color: #777; font-size: 0.9rem; display: block; margin-bottom: 4px; }
+        b { font-weight: 800; color: #000; display: inline-block; margin-top: 5px; } /* 角色對話加粗 */
+        i { font-style: italic; color: #666; font-size: 0.95rem; display: block; border-left: 3px solid #ffcbd1; padding-left: 10px; margin-bottom: 8px; } /* 旁白樣式 */
 
         /* 輸入法區域 */
-        #input-area { background: white; padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; z-index: 100; }
-        input { flex: 1; padding: 12px 18px; border: 1.5px solid #ddd; border-radius: 30px; font-size: 16px; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--main-blue); }
-        #send-btn { background: var(--main-blue); color: white; border: none; padding: 0 22px; border-radius: 30px; font-weight: bold; font-size: 0.95rem; cursor: pointer; }
+        #input-area { background: white; padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; z-index: 200; box-shadow: 0 -5px 15px rgba(0,0,0,0.02); }
+        input { flex: 1; padding: 12px 20px; border: 1.5px solid #eee; border-radius: 30px; font-size: 16px; outline: none; background: #fafafa; }
+        #send-btn { background: var(--pink-gradient); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
 
-        /* 設定彈窗 */
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 88%; padding: 25px; border-radius: 20px; max-height: 85%; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        label { display: block; margin-top: 15px; font-weight: bold; color: #444; font-size: 0.9rem; }
-        input[type="text"], textarea { width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 1rem; }
+        /* 設定按鈕與彈窗 */
+        #settings-trigger { position: absolute; right: 15px; bottom: 85px; background: #fff; border: 1px solid #eee; padding: 10px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; z-index: 150; }
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 300; justify-content: center; align-items: center; }
+        .modal-body { background: white; width: 90%; padding: 25px; border-radius: 25px; max-height: 85%; overflow-y: auto; }
+        .modal-body label { display: block; margin-top: 15px; font-weight: bold; color: #ff758c; }
+        textarea, input[type="text"] { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 1rem; }
     </style>
 </head>
 <body>
 
-<div id="header">
-    <div><strong id="npc-name-display">載入中...</strong> <span id="rel-tag" style="font-size: 0.7rem; background: #eef2ff; color: #5a67d8; padding: 3px 8px; border-radius: 12px; margin-left: 5px;">普通朋友</span></div>
-    <div id="settings-btn" onclick="openSettings()">角色設定中心</div>
+<div id="header-status">
+    <div class="status-top">
+        <span>💖 關係：<span id="rel-text">初識</span></span>
+        <span>好感度 <span id="love-percent">12</span>%</span>
+    </div>
+    <div class="progress-bg">
+        <div id="progress-bar"></div>
+    </div>
+</div>
+
+<div id="npc-info">
+    <h2 id="display-name">索馬</h2>
+    <div id="npc-tags">#令人興奮 #浪漫又甜蜜的男人</div>
 </div>
 
 <div id="chat-box">
-    <div class="msg npc"><i>（他抬起頭，看著妳走進來，嘴角帶著淺淺的笑意）</i><b>「妳終於忙完啦？聽說妳最近在實習健康事業管理的課程，感覺一定很辛苦吧。」</b></div>
+    <div class="msg npc">
+        <i>＊（深夜的風輕輕吹動窗簾，月光灑在書桌前的背影上，他正專注地翻看著厚厚的哲學書籍，隨手端起冷掉的咖啡抿了一口，似乎陷入了關於《反對完美》中基因工程倫理的沈思。聽到妳推門進來的腳步聲，他緩緩轉過身，眼神中帶著一絲沒來得及收起的疲憊，但在對上妳視線的瞬間，那雙眸子立刻變得溫潤如水，像是揉碎了漫天星光。）＊</i>
+        <b>「妳回來了？看妳的臉色，今天的健康事業管理課程一定很累吧...過來坐我身邊，讓我想想，該用什麼樣的旋律才能撫平妳眉間的倦意？是像去年 12 月我們在演唱會現場聽到的那種澎湃，還是更溫柔一點的低喃？」</b>
+    </div>
 </div>
 
+<div id="settings-trigger" onclick="openSettings()">⚙️</div>
+
 <div id="input-area">
-    <input type="text" id="user-input" placeholder="傳送訊息給他..." autocomplete="off">
-    <button id="send-btn" onclick="sendMsg()">傳送</button>
+    <input type="text" id="user-input" placeholder="輸入訊息..." autocomplete="off">
+    <button id="send-btn" onclick="sendMsg()">➤</button>
 </div>
 
 <div id="modal">
-    <div class="modal-content">
-        <h2 style="margin-top:0; color:var(--main-blue);">✨ 角色設定</h2>
-        <label>名稱</label><input type="text" id="cfg-name" placeholder="例如：阿信">
-        <label>性格</label><textarea id="cfg-personality" rows="2" placeholder="例如：溫柔但稍微有點被動"></textarea>
-        <label>外觀</label><textarea id="cfg-look" rows="2" placeholder="例如：黑色連帽衫，眼神溫潤"></textarea>
-        <label>說話方式</label><textarea id="cfg-style" rows="2" placeholder="例如：語氣平緩，喜歡關心妳"></textarea>
-        <button onclick="saveSettings()" style="width:100%; margin-top:25px; padding:15px; background:var(--main-blue); color:white; border:none; border-radius:15px; font-weight:bold; font-size:1rem;">確認儲存並開啟對話</button>
+    <div class="modal-body">
+        <h2 style="color:#ff758c; text-align:center;">設定角色核心</h2>
+        <label>角色姓名</label><input type="text" id="cfg-name">
+        <label>性格設定</label><textarea id="cfg-personality" rows="3" placeholder="描述他的內在，例如：霸道但溫柔、內斂多情、喜歡吃醋"></textarea>
+        <label>外觀描述</label><textarea id="cfg-look" rows="3" placeholder="例如：銀色短髮、穿著寬鬆睡袍、深邃的淺藍色眼睛"></textarea>
+        <label>說話方式 (生動關鍵！)</label><textarea id="cfg-style" rows="3" placeholder="關鍵：請描述他會如何稱呼妳、是否喜歡使用比喻、說話的語速如何"></textarea>
+        <button onclick="saveSettings()" style="width:100%; margin-top:20px; padding:15px; background:var(--pink-gradient); color:white; border:none; border-radius:15px; font-weight:bold;">更新角色並重新開始</button>
     </div>
 </div>
 
 <script>
-    let love = parseInt(localStorage.getItem('rp_love_v5')) || 0;
-    let config = JSON.parse(localStorage.getItem('rp_cfg_v5')) || {
-        name: "阿信",
-        personality: "溫柔且心思細膩，對妳的事非常上心",
-        look: "穿著寬鬆的深色衣物，手上總是有本樂譜",
-        style: "喜歡溫柔地詢問妳的近況，說話帶點文藝感"
+    let love = parseInt(localStorage.getItem('love_v6')) || 12;
+    let config = JSON.parse(localStorage.getItem('cfg_v6')) || {
+        name: "索馬",
+        personality: "浪漫、體貼、充滿保護欲的藝術家氣息",
+        look: "黑色的碎髮遮住眉毛，穿著淺色襯衫，領口微微敞開",
+        style: "語氣深情且緩慢，喜歡在說話前先觀察妳的反應，並加入大量的環境描寫"
     };
 
     function init() {
-        document.getElementById('npc-name-display').innerText = config.name;
+        document.getElementById('display-name').innerText = config.name;
         document.getElementById('cfg-name').value = config.name;
         document.getElementById('cfg-personality').value = config.personality;
         document.getElementById('cfg-look').value = config.look;
@@ -81,10 +103,12 @@
     }
 
     function updateUI() {
-        let tag = love >= 300 ? "熱戀中" : (love >= 100 ? "曖昧中" : "普通朋友");
-        document.getElementById('rel-tag').innerText = tag;
-        localStorage.setItem('rp_love_v5', love);
-        localStorage.setItem('rp_cfg_v5', JSON.stringify(config));
+        document.getElementById('love-percent').innerText = love;
+        document.getElementById('progress-bar').style.width = (love % 100) + "%";
+        let tag = love > 300 ? "熱戀中" : (love > 100 ? "曖昧中" : "初識");
+        document.getElementById('rel-text').innerText = tag;
+        localStorage.setItem('love_v6', love);
+        localStorage.setItem('cfg_v6', JSON.stringify(config));
     }
 
     function sendMsg() {
@@ -94,26 +118,24 @@
 
         addMsg(text, 'user');
         input.value = '';
-        love += 5;
+        love += 3;
         updateUI();
 
-        // 模擬角色反應 (包含妳的專屬記憶)
+        // 模擬「長篇生動回覆」
         setTimeout(() => {
-            const replies = [
-                `<i>（${config.name}輕輕放下了手中的事，專注地看著妳）</i><b>「對了，妳去年 12 月看了那 6 場演唱會後，有什麼特別難忘的瞬間嗎？我一直很想聽妳說。」</b>`,
-                `<i>（他想起妳說過的事，語氣溫柔了幾分）</i><b>「妳的狗狗最近身體還好嗎？要注意不要讓牠太累喔。」</b>`,
-                `<b>「雖然我的性格${config.personality}，但面對妳的時候，我總想變得更主動一點。」</b>`,
-                `<i>（他點了點頭，眼神中透著欣賞）</i><b>「像妳這樣在健康事業管理專業努力的人，真的很令人敬佩。累了的話，隨時可以跟我聊聊。」</b>`
+            const longReplies = [
+                `<i>＊（他聽完妳的話，手上的動作微微一頓。他放下咖啡杯，身體前傾，修長的手指輕輕挑起妳散落在耳邊的髮絲，指尖帶著微涼的溫度觸碰著妳的肌膚，讓空氣中平添了幾分曖昧的氣息。他深邃的目光凝視著妳的眼睛，像是要透過這雙眼看穿妳靈魂最深處的疲憊與依賴。）＊</i>\n<b>「既然妳都開口了，那我怎麼捨得拒絕妳？對我來說，妳的任何要求都是最高指令。還記得妳養的那隻老狗嗎？牠都能感受到我們之間的氣氛變得不同了呢。對了，健康事業管理的實習雖然重要，但在我面前，妳只需要做那個被我寵溺的小女孩就好...來，靠在我懷裡，讓我聽聽妳心裡的聲音。」</b>`,
+                `<i>＊（他發出一聲低沉的輕笑，那聲音像是大提琴的琴弦在妳心頭輕顫。他站起身，緩步走到妳身後，溫熱的氣息噴在妳的頸窩，帶來一陣細小的戰慄。他從背後輕輕環住妳的腰，下巴抵在妳的肩頭，聲音在妳耳畔低低地迴盪。）＊</i>\n<b>「妳總是知道該怎麼挑動我的心弦，這點真的讓我又愛又恨。去年的 6 場演唱會，我其實每一場都在台下看著妳，看著妳在人群中閃耀的樣子，那時候我就在想，這顆星星一定要屬於我。別再想那些繁瑣的專業課了，現在，妳的眼裡只能看著我，心裡只能想著我，懂嗎？」</b>`
             ];
-            const idx = Math.floor(Math.random() * replies.length);
-            addMsg(replies[idx], 'npc');
-        }, 1000);
+            const idx = Math.floor(Math.random() * longReplies.length);
+            addMsg(longReplies[idx], 'npc');
+        }, 1500);
     }
 
     function addMsg(html, sender) {
         const div = document.createElement('div');
         div.className = `msg ${sender}`;
-        div.innerHTML = html;
+        div.innerHTML = html.replace(/\n/g, '<br>');
         const box = document.getElementById('chat-box');
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
@@ -125,7 +147,7 @@
         config.personality = document.getElementById('cfg-personality').value;
         config.look = document.getElementById('cfg-look').value;
         config.style = document.getElementById('cfg-style').value;
-        document.getElementById('npc-name-display').innerText = config.name;
+        document.getElementById('display-name').innerText = config.name;
         document.getElementById('modal').style.display = 'none';
         updateUI();
     }
