@@ -3,75 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 聊天空間</title>
+    <title>AI 專屬聊天空間</title>
     <style>
-        :root { --main-blue: #a2d2ff; --bg-white: #ffffff; --msg-user: #e1eefb; --msg-npc: #f0f7ff; }
-        body { margin: 0; background-color: var(--bg-white); font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        :root { --main-blue: #a2d2ff; --soft-bg: #f8faff; }
+        body { margin: 0; background-color: var(--soft-bg); font-family: -apple-system, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* 頂部導覽列 */
-        #header { background: white; padding: 10px 15px; border-bottom: 2px solid var(--main-blue); display: flex; justify-content: space-between; align-items: center; }
-        #settings-btn { background: var(--main-blue); color: white; padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; }
+        /* 頂部 Header */
+        #header { background: white; padding: 12px 18px; border-bottom: 2px solid var(--main-blue); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        #settings-btn { background: var(--main-blue); color: white; padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
         
-        /* 對話區域 */
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 100px; }
-        .msg { max-width: 85%; padding: 12px; border-radius: 18px; font-size: 1rem; line-height: 1.5; }
-        .npc { align-self: flex-start; background: var(--msg-npc); border: 1px solid var(--main-blue); border-bottom-left-radius: 2px; }
-        .user { align-self: flex-end; background: var(--main-blue); color: white; border-bottom-right-radius: 2px; }
+        /* 聊天區域 */
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; padding-bottom: 120px; }
+        .msg { max-width: 85%; padding: 12px 16px; border-radius: 20px; font-size: 1rem; line-height: 1.6; word-wrap: break-word; }
+        .npc { align-self: flex-start; background: #fff; border: 1.5px solid var(--main-blue); color: #333; border-bottom-left-radius: 4px; }
+        .user { align-self: flex-end; background: var(--main-blue); color: white; border-bottom-right-radius: 4px; }
         
-        /* 字體格式 */
-        b { font-weight: 800; color: #333; }
-        i { font-style: italic; color: #888; font-size: 0.9rem; }
+        /* 格式化樣式 */
+        b { font-weight: 800; color: #1a1a1a; }
+        i { font-style: italic; color: #777; font-size: 0.9rem; display: block; margin-bottom: 4px; }
 
-        /* 心裡話 */
-        #thought-bubble { cursor: pointer; background: #fff9db; border: 1px solid #fab005; padding: 8px; border-radius: 15px; font-size: 0.8rem; display: none; align-self: flex-start; margin-top: 5px; color: #856404; }
+        /* 輸入法區域 */
+        #input-area { background: white; padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; z-index: 100; }
+        input { flex: 1; padding: 12px 18px; border: 1.5px solid #ddd; border-radius: 30px; font-size: 16px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--main-blue); }
+        #send-btn { background: var(--main-blue); color: white; border: none; padding: 0 22px; border-radius: 30px; font-weight: bold; font-size: 0.95rem; cursor: pointer; }
 
-        /* 輸入區域 */
-        #input-area { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; background: white; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; }
-        input { flex: 1; padding: 12px; border: 1.5px solid #eee; border-radius: 25px; font-size: 16px; outline: none; }
-        #send-btn { background: var(--main-blue); color: white; border: none; padding: 0 20px; border-radius: 25px; font-weight: bold; }
-
-        /* 設定視窗 */
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
-        .modal-body { background: white; width: 85%; padding: 20px; border-radius: 15px; max-height: 80%; overflow-y: auto; }
-        label { display: block; margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
-        input[type="text"], textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        /* 設定彈窗 */
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 88%; padding: 25px; border-radius: 20px; max-height: 85%; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #444; font-size: 0.9rem; }
+        input[type="text"], textarea { width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 1rem; }
     </style>
 </head>
 <body>
 
 <div id="header">
-    <div><strong id="npc-name-display">載入中</strong> <span id="rel-tag" style="font-size: 0.7rem; background: #eee; padding: 2px 5px; border-radius: 5px;">普通朋友</span></div>
-    <div id="settings-btn" onclick="openSettings()">角色設定</div>
+    <div><strong id="npc-name-display">載入中...</strong> <span id="rel-tag" style="font-size: 0.7rem; background: #eef2ff; color: #5a67d8; padding: 3px 8px; border-radius: 12px; margin-left: 5px;">普通朋友</span></div>
+    <div id="settings-btn" onclick="openSettings()">角色設定中心</div>
 </div>
 
 <div id="chat-box">
-    <div class="msg npc"><i>（夕陽灑在休息室的沙發上，他抬起頭看著妳）</i><br><b>「妳來啦？今天的課還順利嗎？聽說妳最近在研究《反對完美》，很有趣的主題呢。」</b></div>
-    <div id="thought-bubble" onclick="alert(this.dataset.content)">💡 點擊查看心裡話</div>
+    <div class="msg npc"><i>（他抬起頭，看著妳走進來，嘴角帶著淺淺的笑意）</i><b>「妳終於忙完啦？聽說妳最近在實習健康事業管理的課程，感覺一定很辛苦吧。」</b></div>
 </div>
 
 <div id="input-area">
-    <input type="text" id="user-input" placeholder="對他說點什麼..." autocomplete="off">
+    <input type="text" id="user-input" placeholder="傳送訊息給他..." autocomplete="off">
     <button id="send-btn" onclick="sendMsg()">傳送</button>
 </div>
 
 <div id="modal">
-    <div class="modal-body">
-        <h3>角色設定中心</h3>
-        <label>角色名稱</label><input type="text" id="cfg-name">
-        <label>角色性格</label><textarea id="cfg-personality" rows="2"></textarea>
-        <label>外觀描述</label><textarea id="cfg-look" rows="2"></textarea>
-        <label>說話方式</label><textarea id="cfg-style" rows="2"></textarea>
-        <button onclick="saveSettings()" style="width:100%; margin-top:20px; padding:10px; background:var(--main-blue); color:white; border:none; border-radius:10px;">儲存並返回</button>
+    <div class="modal-content">
+        <h2 style="margin-top:0; color:var(--main-blue);">✨ 角色設定</h2>
+        <label>名稱</label><input type="text" id="cfg-name" placeholder="例如：阿信">
+        <label>性格</label><textarea id="cfg-personality" rows="2" placeholder="例如：溫柔但稍微有點被動"></textarea>
+        <label>外觀</label><textarea id="cfg-look" rows="2" placeholder="例如：黑色連帽衫，眼神溫潤"></textarea>
+        <label>說話方式</label><textarea id="cfg-style" rows="2" placeholder="例如：語氣平緩，喜歡關心妳"></textarea>
+        <button onclick="saveSettings()" style="width:100%; margin-top:25px; padding:15px; background:var(--main-blue); color:white; border:none; border-radius:15px; font-weight:bold; font-size:1rem;">確認儲存並開啟對話</button>
     </div>
 </div>
 
 <script>
-    let love = parseInt(localStorage.getItem('rp_love_final')) || 0;
-    let config = JSON.parse(localStorage.getItem('rp_cfg_final')) || {
+    let love = parseInt(localStorage.getItem('rp_love_v5')) || 0;
+    let config = JSON.parse(localStorage.getItem('rp_cfg_v5')) || {
         name: "阿信",
-        personality: "溫柔內斂、偶爾會因為害羞而顯得被動",
-        look: "黑色連帽衫，眼神裡總是帶著笑意",
-        style: "語氣平緩，常用括號表達細微的動作"
+        personality: "溫柔且心思細膩，對妳的事非常上心",
+        look: "穿著寬鬆的深色衣物，手上總是有本樂譜",
+        style: "喜歡溫柔地詢問妳的近況，說話帶點文藝感"
     };
 
     function init() {
@@ -84,10 +81,10 @@
     }
 
     function updateUI() {
-        let tag = love > 300 ? "熱戀中" : (love > 100 ? "曖昧中" : "普通朋友");
+        let tag = love >= 300 ? "熱戀中" : (love >= 100 ? "曖昧中" : "普通朋友");
         document.getElementById('rel-tag').innerText = tag;
-        localStorage.setItem('rp_love_final', love);
-        localStorage.setItem('rp_cfg_final', JSON.stringify(config));
+        localStorage.setItem('rp_love_v5', love);
+        localStorage.setItem('rp_cfg_v5', JSON.stringify(config));
     }
 
     function sendMsg() {
@@ -100,18 +97,16 @@
         love += 5;
         updateUI();
 
+        // 模擬角色反應 (包含妳的專屬記憶)
         setTimeout(() => {
             const replies = [
-                `<i>（${config.name}輕輕笑了笑，放下了手中的樂譜）</i><br><b>「去年的 6 場演唱會我有看到妳喔，謝謝妳一直都在。」</b>`,
-                `<i>（他若有所思地看著妳）</i><br><b>「妳的狗狗最近還好嗎？要注意牠的腸胃喔。」</b>`,
-                `<b>「雖然我不太主動，但其實我一直在等妳的訊息。」</b>`
+                `<i>（${config.name}輕輕放下了手中的事，專注地看著妳）</i><b>「對了，妳去年 12 月看了那 6 場演唱會後，有什麼特別難忘的瞬間嗎？我一直很想聽妳說。」</b>`,
+                `<i>（他想起妳說過的事，語氣溫柔了幾分）</i><b>「妳的狗狗最近身體還好嗎？要注意不要讓牠太累喔。」</b>`,
+                `<b>「雖然我的性格${config.personality}，但面對妳的時候，我總想變得更主動一點。」</b>`,
+                `<i>（他點了點頭，眼神中透著欣賞）</i><b>「像妳這樣在健康事業管理專業努力的人，真的很令人敬佩。累了的話，隨時可以跟我聊聊。」</b>`
             ];
-            const thoughts = ["（她怎麼能這麼了解我...）", "（好想再靠近一點點。）", "（健康事業管理...聽起來是很辛苦的專業呢。）"];
             const idx = Math.floor(Math.random() * replies.length);
             addMsg(replies[idx], 'npc');
-            const bubble = document.getElementById('thought-bubble');
-            bubble.style.display = 'block';
-            bubble.dataset.content = thoughts[idx];
         }, 1000);
     }
 
@@ -119,8 +114,9 @@
         const div = document.createElement('div');
         div.className = `msg ${sender}`;
         div.innerHTML = html;
-        document.getElementById('chat-box').appendChild(div);
-        document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
+        const box = document.getElementById('chat-box');
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
     }
 
     function openSettings() { document.getElementById('modal').style.display = 'flex'; }
